@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web
+  labels: &labels
+    app.kubernetes.io/name: stateful-test-app
+    app.kubernetes.io/instance: test
+    app.kubernetes.io/version: v0.0.1
+spec:
+  serviceName: nginx
+  replicas: 3
+  selector:
+    matchLabels: *labels
+  template:
+    metadata:
+      labels: *labels
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.21
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Hostname $(hostname)" > /usr/share/nginx/html/index.html;
+              nginx -g 'daemon off;';
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: web
+              containerPort: 80
+          volumeMounts:
+            - name: www
+              mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+    - metadata:
+        name: www
+      spec:
+        accessModes:
+          - ReadWriteMany
+        storageClassName: nfs-csi
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels: &labels
+    app.kubernetes.io/name: stateful-test-app
+    app.kubernetes.io/instance: test
+    app.kubernetes.io/version: v0.0.1
+spec:
+  clusterIP: None
+  selector: *labels
+  ports:
+    - name: web
+      port: 80
