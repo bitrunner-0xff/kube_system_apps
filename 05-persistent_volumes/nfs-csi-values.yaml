@@ -1,0 +1,21 @@
+controller:
+  runOnControlPlane: true
+  priorityClassName: system-cluster-critical
+  replicas: 1
+
+storageClass:
+  create: true
+  name: managed-nfs-storage
+  reclaimPolicy: Retain
+  volumeBindingMode: Immediate
+  parameters:
+    server: 192.168.122.20
+    share: /srv/nfs
+    archiveOnDelete: "false"
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+    - noatime
+
+externalSnapshotter:
+  enabled: true

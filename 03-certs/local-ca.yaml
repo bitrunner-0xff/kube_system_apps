@@ -1,13 +1,18 @@
----
 apiVersion: cert-manager.io/v1
-kind: Issuer
+kind: ClusterIssuer
 metadata:
-  name: dev-ca-ss
-  namespace: cert-manager
+  name: selfsigned-bootstrap
 spec:
   selfSigned: {}
 ---
-# Self-signed CA
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: local-dev-ca
+spec:
+  ca:
+    secretName: local-dev-ca
+---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -15,6 +20,8 @@ metadata:
   namespace: cert-manager
 spec:
   isCA: true
+  commonName: "Local Development CA"
+  secretName: local-dev-ca
   duration: 87600h # 10y
   subject:
     organizations:
@@ -25,21 +32,10 @@ spec:
       - "Berlin"
     countries:
       - "DE"
-  commonName: "Bitrunner home CA"
-  secretName: dev-ca
   privateKey:
     algorithm: RSA
     encoding: PKCS8
     size: 4096
   issuerRef:
-    name: dev-ca-ss
-    kind: Issuer
-    group: cert-manager.io
----
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: dev-ca-issuer
-spec:
-  ca:
-    secretName: dev-ca
+    name: selfsigned-bootstrap
+    kind: ClusterIssuer
